@@ -1,5 +1,5 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/outputs.nix
+# gen-vars/examples/multi-target/modules/outputs.nix
 # THE MULTI-TARGET PROOF. Primary: ONE resolveAll call with BOTH resolvers on
 # ONE handle (the defining fan-out). Secondary: end-to-end injected-class eval.
 # Plus the discriminating SCOPE asserts (env baseline + union).

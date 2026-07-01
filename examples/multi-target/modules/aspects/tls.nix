@@ -1,9 +1,9 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/aspects/tls.nix
+# gen-vars/examples/multi-target/modules/aspects/tls.nix
 # The env-baseline aspect: declares the `tls-ca` generator that prod-env hosts
 # inherit via the scope graph (NOT via their role). Makes the env tier
-# load-bearing — see the §5.9 negative assert (tls-ca reaches vpn-host SOLELY
-# by env inheritance).
+# load-bearing — see the envBaseline negative assert (tls-ca reaches vpn-host
+# SOLELY by env inheritance).
 # =============================================================================
 { ... }:
 {

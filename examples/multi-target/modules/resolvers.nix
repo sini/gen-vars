@@ -1,5 +1,5 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/resolvers.nix
+# gen-vars/examples/multi-target/modules/resolvers.nix
 # Per-class resolver registry + projectVars. Resolution runs through the
 # gen-vars CORE interface resolveAll (never a bypass). The nixos resolver is
 # host-aware so generation varies by scope position, not just selection.

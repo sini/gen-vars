@@ -2,7 +2,7 @@
 
 A fresh, lean flake-parts demo proving the gen-vars headline: **the scope graph decides which generators each host gets, and one generated file resolves to multiple targets in a single evaluation.** It composes four gen libraries — `gen-aspects` (aspect schema + classes), `gen-scope` (the env/host graph that drives selection), `gen-bind` (injecting resolved values into class content), and `gen-vars` (handles, plans, `resolveAll`).
 
-This demo lives inside the gen-vars project, so it consumes gen-vars as the parent input (`gen-vars.url = "path:../.."`) and reads every sibling lib (`gen-aspects`, `gen-scope`, `gen-bind`, plus their `gen-schema` / `gen-algebra` / `gen-graph` deps) as **direct flake inputs** — `setup.nix` constructs each lib itself, mirroring how gen's `mkGenLibs` wires them. No gen hub required.
+This demo lives inside the gen-vars project, so it consumes gen-vars as the parent input (`gen-vars.url = "path:../.."`) and reads every sibling lib (`gen-aspects`, `gen-scope`, `gen-bind`, plus the `gen-schema` / `gen-algebra` deps) as **direct flake inputs**. Every published gen lib now exposes a single `.lib` VALUE, so `setup.nix` consumes `inputs.<lib>.lib` directly (the old callable `gen-X { inherit lib; }` functor is gone). `gen-scope` / `gen-bind` are now nixpkgs-lib-free (they wire their own `gen-prelude`); `gen-schema` / `gen-aspects` still accept a `lib`, so the demo threads its own `nixpkgs.lib` into them to keep one lib instance. `gen-vars`' own `.lib` wires `gen-graph` transitively, so the demo needs no direct `gen-graph` input. No gen hub required.
 
 ## Running
 
@@ -52,7 +52,7 @@ ci/
 | **gen-vars** | imported-only: `mkHandle` / `mkGenerator` / `mkPlan` / `resolveAll` / `handleId`. `resolveAll` fans ONE handle to BOTH class resolvers in ONE call |
 | **gen-bind** | `wrap` injects a host-global `vars` binding (resolved class-native values) into each aspect's parametric class content, with a contract + provenance |
 
-`gen-derive` is deliberately **not** on the selection path — a pure `genScope.inheritAll` parent-chain accumulator is leaner and makes the scope graph itself the selection mechanism, which is the demo's point.
+`gen-dispatch` is deliberately **not** on the selection path — a pure `genScope.inheritAll` parent-chain accumulator is leaner and makes the scope graph itself the selection mechanism, which is the demo's point.
 
 ## The fleet
 

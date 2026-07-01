@@ -9,23 +9,24 @@
 { lib, inputs, ... }:
 let
   # --- construct each lib from its input, mirroring gen's mkGenLibs wiring ---
-  algebra = inputs.gen-algebra { inherit lib; }; # functor
-  scope = inputs.gen-scope { inherit lib; }; # functor
-  bind = import "${inputs.gen-bind}/nix/lib" { inherit lib; };
-  schema = import "${inputs.gen-schema}/nix/lib" {
-    inputs.gen-algebra = algebra;
-    inherit lib;
+  # Every published gen lib now exposes a single `.lib` VALUE (the old callable
+  # `gen-X { inherit lib; }` functor form is gone). gen-scope, gen-bind and
+  # gen-algebra are nixpkgs-lib-free (they wire their own gen-prelude), so we
+  # consume their `.lib` directly. gen-schema and gen-aspects still accept a
+  # `lib`, so we thread the demo's nixpkgs.lib into them (via `${input}/lib`)
+  # to keep ONE lib instance across the module eval.
+  algebra = inputs.gen-algebra.lib;
+  scope = inputs.gen-scope.lib;
+  bind = inputs.gen-bind.lib;
+  schema = import "${inputs.gen-schema}/lib" {
+    inherit lib algebra;
   };
   aspects = import "${inputs.gen-aspects}/lib" {
-    inputs.gen-schema = schema;
-    inherit lib;
+    inherit lib schema;
   };
-  # gen-vars: import the flake root default.nix (signature `{ lib, inputs }:`),
-  # threading the gen-graph flake input so order/ enrichment shares its revision.
-  vars = import "${inputs.gen-vars}" {
-    inherit lib;
-    inputs = { inherit (inputs) gen-graph; };
-  };
+  # gen-vars: its `.lib` output already wires gen-graph from gen-vars' own lock,
+  # so order/ enrichment shares gen-vars' pinned gen-graph revision.
+  vars = inputs.gen-vars.lib;
 
   genAspects = aspects;
   genScope = scope;
@@ -34,7 +35,7 @@ let
 
   # The declared class set is the SINGLE SOURCE OF TRUTH for classNames.
   # config.schema.aspect.classes does NOT exist (classes live at cnf.classes
-  # internally, never re-surfaced — gen-aspects types.nix:104). We thread the
+  # internally, never re-surfaced by gen-aspects). We thread the
   # literal set explicitly; NO silent or-fallback to nixos.
   classes = {
     nixos = { };

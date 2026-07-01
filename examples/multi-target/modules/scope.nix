@@ -1,9 +1,9 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/scope.nix
+# gen-vars/examples/multi-target/modules/scope.nix
 # A REAL small env/host parent graph + scope-driven generator SELECTION.
 # The env node contributes a baseline generator set; each host adds its own
 # (role-driven). `genScope.inheritAll` UNIONS the set up the env->host chain:
-# the GRAPH TOPOLOGY is the selection mechanism (den value-add over flat vars).
+# the GRAPH TOPOLOGY is the selection mechanism (the win over flat per-host vars).
 # =============================================================================
 {
   lib,
@@ -28,7 +28,7 @@ let
   };
   # env -> baseline generators every host in that env inherits (topology-driven).
   # `tls-ca` is a REAL declared generator (aspects/tls.nix) and reaches
-  # vpn-host SOLELY by env inheritance — the discriminating proof of §5.9.
+  # vpn-host SOLELY by env inheritance — the discriminating envBaseline proof.
   envGenerators = {
     prod = [
       "tls-ca"

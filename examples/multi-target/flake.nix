@@ -10,7 +10,6 @@
     gen-aspects.url = "github:sini/gen-aspects";
     gen-scope.url = "github:sini/gen-scope";
     gen-bind.url = "github:sini/gen-bind";
-    gen-graph.url = "github:sini/gen-graph";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";

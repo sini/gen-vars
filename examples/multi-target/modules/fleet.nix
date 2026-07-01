@@ -1,5 +1,5 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/fleet.nix
+# gen-vars/examples/multi-target/modules/fleet.nix
 # Hosts with a role + env. env/role drive scope-graph generator selection.
 # =============================================================================
 { lib, ... }:

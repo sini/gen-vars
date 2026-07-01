@@ -1,5 +1,5 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/generators.nix
+# gen-vars/examples/multi-target/modules/generators.nix
 # Collect generator declarations from the aspect tree (flatten); per host,
 # instantiate ONLY the scope-selected, DECLARED generators into pure gen-vars
 # handles + a plan. gen-vars is imported-only here.

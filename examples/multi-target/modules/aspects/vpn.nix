@@ -1,5 +1,5 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/aspects/vpn.nix
+# gen-vars/examples/multi-target/modules/aspects/vpn.nix
 # The proof aspect: a wg-key generator + PARAMETRIC nixos/terranix classes that
 # read the host-global `vars` binding. SAME handle (wg-key/public.key) consumed
 # by BOTH classes — the multi-target headline.
@@ -24,7 +24,7 @@
     };
 
     # PARAMETRIC classes (MUST name `vars`): a static attrset never names
-    # `vars`, so genBind.wrap (wrap.nix:88-90 binds only named args) would never
+    # `vars`, so genBind.wrap (binds only named args) would never
     # bind it and `vars.wg-key."public.key"` would be a missing-attr throw.
     # The SAME handle reaches both classes via two resolvers.
     nixos =

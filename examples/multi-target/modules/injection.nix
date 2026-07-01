@@ -1,5 +1,5 @@
 # =============================================================================
-# gen/examples/gen-vars/modules/injection.nix
+# gen-vars/examples/multi-target/modules/injection.nix
 # Per-class loop: bind host-global `vars` (resolved, class-native values) into
 # each aspect's class content via genBind.wrap. classNames is threaded
 # EXPLICITLY (NEVER off config.schema).
