@@ -9,6 +9,5 @@
         lib = nixpkgs.lib;
         inputs = { inherit gen-graph; };
       };
-      __functor = _: import ./.;
     };
 }

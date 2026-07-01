@@ -4,12 +4,14 @@
 
 A den-agnostic, pure-Nix vars/secrets library. It owns the **generator** data model, **dependency-DAG ordering**, a backend-agnostic **generation plan**, and a **multi-target resolution interface**. Impure execution is *emitted* (a script / derivation), never run by the library — gen-vars produces plans; a backend the consumer drives does the generating.
 
+Dependency class: **nixpkgs-lib-tethered**. The library builds on `nixpkgs.lib` (`toposort`, the NixOS module system) with a single *optional* gen sibling — [gen-graph](https://github.com/sini/gen-graph) — for richer `order` diagnostics. Its bottom `pure/` tier is `lib`-free by construction (imported zero-arg, `builtins` only), so handles, generators, and the resolution interface stay usable with no `lib` at all.
+
 ## Table of Contents
 
 - [Overview](#overview)
-- [The multi-target property](#the-multi-target-property)
 - [Gen Ecosystem](#gen-ecosystem)
 - [Quick Start](#quick-start)
+- [The multi-target property](#the-multi-target-property)
 - [Tiers](#tiers)
 - [API Reference](#api-reference)
 - [Usage Example](#usage-example)
@@ -34,21 +36,6 @@ plan    = genVars.mkPlan gens;                                  # topo-ordered; 
 harness = genVars.backends.onMachine { inherit pkgs plan; };    # → { app; store; resolve }; emits, runs nothing
 ```
 
-## The multi-target property
-
-A generated file is a pure **handle** `{ generator; name; secret; }` that carries **no resolution**. A *resolver* is a plain `handle -> resolution`, where `resolution` is *any* class-native value (a path string, a terranix ref, a `Secret` attrset — an **open** type). `resolveAll` feeds **one** handle to **many** resolvers in **one** evaluation:
-
-```nix
-genVars.resolveAll {
-  nixos    = h: "/etc/vars/${h.generator}/${h.name}";
-  terranix = h: { ref = "vars_file.${h.generator}_${h.name}"; };
-} (genVars.mkHandle { generator = "ca"; name = "cert.pem"; secret = false; })
-# → { nixos    = "/etc/vars/ca/cert.pem";
-#     terranix = { ref = "vars_file.ca_cert.pem"; }; }
-```
-
-One file, two consumers, one eval. That fan-out — not machine-coupled storage — is what gen-vars adds over flat NixOS vars.
-
 ## Gen Ecosystem
 
 | Library | Role |
@@ -64,7 +51,7 @@ One file, two consumers, one eval. That fan-out — not machine-coupled storage 
 | [gen-dispatch](https://github.com/sini/gen-dispatch) | Relational rule dispatch STEP (stratified phases, conflict resolution) |
 | [gen-resolve](https://github.com/sini/gen-resolve) | Demand-driven RAG evaluator over scope graphs (attribute schedule + convergence loop) |
 | [gen-rebuild](https://github.com/sini/gen-rebuild) | Pure-Nix incremental rebuilder (change propagation, AFFECTED set) |
-| [gen-vars](https://github.com/sini/gen-vars) | Pure-Nix vars/secrets (den-agnostic) |
+| [gen-vars](https://github.com/sini/gen-vars) | **This lib** — Pure-Nix vars/secrets (den-agnostic) |
 
 ## Quick Start
 
@@ -91,6 +78,21 @@ genVars.mkPlan (builtins.mapAttrs genVars.mkGenerator { /* generators */ })
 ```
 
 The root `default.nix` is `{ lib ? null, inputs ? { } }:`. With `lib == null` you still get the lib-free `pure` tier (handles, generators, the resolution interface); the `order` / `module` / `backend` tiers activate once `lib` is supplied. Pass `inputs.gen-graph` to enrich `order`'s impact/dependency diagnostics (optional — it falls back to `lib.toposort`).
+
+## The multi-target property
+
+A generated file is a pure **handle** `{ generator; name; secret; }` that carries **no resolution**. A *resolver* is a plain `handle -> resolution`, where `resolution` is *any* class-native value (a path string, a terranix ref, a `Secret` attrset — an **open** type). `resolveAll` feeds **one** handle to **many** resolvers in **one** evaluation:
+
+```nix
+genVars.resolveAll {
+  nixos    = h: "/etc/vars/${h.generator}/${h.name}";
+  terranix = h: { ref = "vars_file.${h.generator}_${h.name}"; };
+} (genVars.mkHandle { generator = "ca"; name = "cert.pem"; secret = false; })
+# → { nixos    = "/etc/vars/ca/cert.pem";
+#     terranix = { ref = "vars_file.ca_cert.pem"; }; }
+```
+
+One file, two consumers, one eval. That fan-out — not machine-coupled storage — is what gen-vars adds over flat NixOS vars.
 
 ## Tiers
 
@@ -123,6 +125,8 @@ mkResolver : (handle → resolution) → resolver        # identity / doc tag
 resolve    : resolver → handle → resolution
 resolveAll : { <target> = resolver; } → handle → { <target> = resolution; }
 ```
+
+All of the above are spread onto the top-level attrset **and** re-exported grouped under `genVars.pure` — the entire `lib`-free tier as one namespace, so a consumer can depend on just `genVars.pure` with no `lib` in scope.
 
 - **`mkGenerator name spec`** normalizes a generator: each file gets a `generator` backref and `secret = true` / `deploy = true` defaults; each prompt gets `description = name` / `type = "line"` defaults; `dependencies` / `runtimeInputs` / `script` default empty.
 - **`validateGenerator g`** returns a *list* of error strings (never throws) — invalid generator name, invalid file names, invalid prompt types, each reported independently. The core stays lazy/composable; the module tier or consumer chooses when to enforce.

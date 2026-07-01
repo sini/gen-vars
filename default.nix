@@ -8,7 +8,7 @@ let
     if lib == null then
       null
     else if inputs ? gen-graph then
-      inputs.gen-graph { inherit lib; }
+      inputs.gen-graph.lib
     else
       null;
   order = if lib != null then import ./order { inherit lib genGraph; } else null;
