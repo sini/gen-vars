@@ -3,10 +3,18 @@
 # Per-class loop: bind host-global `vars` (resolved, class-native values) into
 # each aspect's class content via genBind.wrap. classNames is threaded
 # EXPLICITLY (NEVER off config.schema).
+#
+# READER of gen-flake's value-injection + the demo's MULTI-TARGET terminal: the
+# aspect tree (with BOTH `nixos` and `terranix` class content) is composed PURELY
+# by gen-flake and injected as `genValues`; this flattens `genValues.aspects`
+# (DATA + unforced class deferredModules) and wraps each class body per (host,
+# class) via genBind.wrap. `classNames` is the explicit declared set (threaded
+# from flake.nix); `config.fleet.hosts` stays flake-parts-side.
 # =============================================================================
 {
   lib,
   config,
+  genValues,
   genAspects,
   genBind,
   classNames,
@@ -15,7 +23,7 @@
   ...
 }:
 let
-  flat = genAspects.flatten config.aspects;
+  flat = genAspects.flatten genValues.aspects;
   leafName = path: lib.last (lib.splitString "/" path);
   hostNames = builtins.attrNames config.fleet.hosts;
 

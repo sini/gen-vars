@@ -3,17 +3,23 @@
 # Collect generator declarations from the aspect tree (flatten); per host,
 # instantiate ONLY the scope-selected, DECLARED generators into pure gen-vars
 # handles + a plan. gen-vars is imported-only here.
+#
+# READER of gen-flake's value-injection: the aspect tree is composed PURELY by
+# gen-flake and injected as `genValues`; this flattens `genValues.aspects` (the
+# resolved aspect registry — DATA, never a gen type) instead of a flake-parts
+# `config.aspects` OPTION tree. `config.fleet.hosts` stays flake-parts-side.
 # =============================================================================
 {
   lib,
   config,
+  genValues,
   genAspects,
   genVars,
   generatorNamesForHost,
   ...
 }:
 let
-  flat = genAspects.flatten config.aspects;
+  flat = genAspects.flatten genValues.aspects;
   hostNames = builtins.attrNames config.fleet.hosts;
 
   # Fold every aspect's `generators` into one host-global declaration registry,

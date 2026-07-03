@@ -1,8 +1,12 @@
 # gen-vars demo: scope-driven, multi-target variable generation
 
-A fresh, lean flake-parts demo proving the gen-vars headline: **the scope graph decides which generators each host gets, and one generated file resolves to multiple targets in a single evaluation.** It composes four gen libraries — `gen-aspects` (aspect schema + classes), `gen-scope` (the env/host graph that drives selection), `gen-bind` (injecting resolved values into class content), and `gen-vars` (handles, plans, `resolveAll`).
+A lean flake-parts demo proving the gen-vars headline: **the scope graph decides which generators each host gets, and one generated file resolves to multiple targets in a single evaluation.** It composes five gen libraries — `gen-flake` (the pure composition boundary), `gen-aspects` (aspect schema + classes), `gen-scope` (the env/host graph that drives selection), `gen-bind` (injecting resolved values into class content), and `gen-vars` (handles, plans, `resolveAll`).
 
-This demo lives inside the gen-vars project, so it consumes gen-vars as the parent input (`gen-vars.url = "path:../.."`) and reads every sibling lib (`gen-aspects`, `gen-scope`, `gen-bind`, plus the `gen-schema` / `gen-algebra` deps) as **direct flake inputs**. Every published gen lib now exposes a single `.lib` VALUE, so `setup.nix` consumes `inputs.<lib>.lib` directly (the old callable `gen-X { inherit lib; }` functor is gone). `gen-scope` / `gen-bind` are now nixpkgs-lib-free (they wire their own `gen-prelude`); `gen-schema` / `gen-aspects` still accept a `lib`, so the demo threads its own `nixpkgs.lib` into them to keep one lib instance. `gen-vars`' own `.lib` wires `gen-graph` transitively, so the demo needs no direct `gen-graph` input. No gen hub required.
+**gen-flake value-injection.** The aspect definitions (`./gen-modules`) are composed PURELY by `gen-flake` — gen-merge's byte-mode `evalModuleTree`, NOT flake-parts' nixpkgs `lib.evalModules`. gen-aspects is now re-hosted on gen-merge, so embedding its aspect TYPE in a flake-parts options tree (the old `modules/setup.nix`: `mkAspectModule {}` + `options.schema`) makes flake-parts walk the type via `substSubModules`/`getSubOptions` and throw. Instead, `gen-flake.flakeModules.default` composes the tree once and injects the resolved config VALUES as the `genValues` module arg; NO gen type enters the flake-parts eval. The `./modules/*` readers consume `genValues.aspects` (resolved DATA + unforced class deferredModules).
+
+This demo is **multi-target**, so it uses gen-flake for the pure compose ONLY, not its `mkSystems` terminal (which builds only the `nixos` class): the demo has no `config.hosts` NixOS registry — it keeps `config.fleet.hosts` flake-parts-side — so `flake.nixosConfigurations` is `{}` (harmless). The demo's OWN multi-target terminal stays flake-parts-side: `injection.nix` binds resolved vars into BOTH classes' content via `genBind.wrap`, and `outputs.nix` fans one handle to both via `genVars.resolveAll { nixos; terranix; }`.
+
+The demo lives inside the gen-vars project, so it pins gen-vars as the parent (`gen-vars.url = "path:../.."`) and consumes gen-flake via a local path pin (`gen-flake` is unpublished). `gen-aspects` / `gen-bind` **follow gen-flake's own instances**, so the reader-side `flatten` / `wrap` operate on aspect + class objects structurally identical to the injected `genValues`. `gen-scope` is the demo's own input. gen-flake threads gen-merge / gen-schema / gen-aspects into the pure tree; no gen hub required.
 
 ## Running
 
@@ -19,25 +23,27 @@ nix develop ./ci -c nix-unit --flake ./ci#tests # → 4/4 successful
 ## Structure
 
 ```
-flake.nix              — inputs = { gen-vars = path:../.. ; gen-aspects/gen-scope/gen-bind/...
-                         (direct github inputs); nixpkgs; flake-parts; import-tree }
-modules/
-  setup.nix            — construct each lib DIRECTLY from inputs (no hub); aspect schema
-                         { nixos; terranix } + a `generators` aspectModule; threads classes +
-                         classNames via _module.args
-  fleet.nix            — 3 hosts with role + env (vpn-host, web-host, dev-host)
+flake.nix              — inputs = { gen-flake = path:… ; gen-vars = path:../.. ; gen-scope;
+                         gen-aspects/gen-bind (follow gen-flake); nixpkgs; flake-parts; import-tree }.
+                         imports gen-flake.flakeModules.default; gen.tree = ./gen-modules;
+                         gen.specialArgs = { lib; classes }; reader libs + classNames via _module.args
+gen-modules/           — the PURE gen tree (composed by gen-flake's evalModuleTree, injected as genValues)
+  aspects.nix          — the typed aspect SURFACE: mkAspectSchema { classes = { nixos; terranix }; }
+                         + a `generators` aspectModule; options.aspects = aspectSchema.mkAspectOption {}
+  aspects/
+    vpn.nix            — wg-key generator + PARAMETRIC nixos/terranix classes that read `vars`
+    tls.nix            — tls-ca generator (the env-baseline aspect)
+modules/               — the flake-parts READERS (consume the injected genValues, emit outputs)
+  fleet.nix            — 3 hosts with role + env (vpn-host, web-host, dev-host); flake-parts-side
   scope.nix            — env/host parent graph; genScope.inheritAll unions each host's generator
                          set up the env→host chain (lib.unique combine) — the SELECTION mechanism
-  generators.nix       — flatten the aspect tree → host-global generator registry; per host,
+  generators.nix       — flatten genValues.aspects → host-global generator registry; per host,
                          materialize ONLY the scope-selected + declared generators into gen-vars handles
   resolvers.nix        — per-class resolver registry (host-aware); projectVars resolves every
                          selected handle through gen-vars' core resolveAll (never a bypass)
   injection.nix        — per-class loop; genBind.wrap binds a host-global `vars` (resolved,
                          class-native values — never handles) into each aspect's class content
   outputs.nix          — flake.varsMultiTarget: the multi-target + end-to-end + scope proofs
-  aspects/
-    vpn.nix            — wg-key generator + PARAMETRIC nixos/terranix classes that read `vars`
-    tls.nix            — tls-ca generator (the env-baseline aspect)
 ci/
   flake.nix            — gen.lib.mkCi (mkCi from github:sini/gen); reads the app flake via inputs.demo
   tests/multi-target.nix — asserts the four proof booleans
