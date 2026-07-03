@@ -390,14 +390,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1783046311,
-        "narHash": "sha256-OTrHr28xfuFU2DL1K+GKIZ724R+QCM3hh49scETC/Gg=",
-        "path": "/home/sini/Documents/repos/gen-flake",
-        "type": "path"
+        "lastModified": 1783043594,
+        "narHash": "sha256-JdBJn4ZQNtNQLe3ItUo7oLpB4xsKvNVcAtLTDLf0j5g=",
+        "owner": "sini",
+        "repo": "gen-flake",
+        "rev": "2d47478057f66be3c9786bcbabbdc131f15d80ce",
+        "type": "github"
       },
       "original": {
-        "path": "/home/sini/Documents/repos/gen-flake",
-        "type": "path"
+        "owner": "sini",
+        "repo": "gen-flake",
+        "type": "github"
       }
     },
     "gen-graph": {
