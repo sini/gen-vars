@@ -10,9 +10,9 @@
   # embed made flake-parts walk the re-hosted aspect type via
   # substSubModules/getSubOptions and throw).
   #
-  # gen-flake here is used for the PURE COMPOSE only, NOT its `mkSystems` terminal:
-  # this demo has no `config.hosts` NixOS registry (it uses `config.fleet.hosts`
-  # flake-parts-side), so mkSystems projects an empty `hostContent` and
+  # gen-flake here is used for the PURE COMPOSE only, NOT its terminal (`realize`):
+  # this demo has no top-level `hosts` registry (it uses `config.fleet.hosts`
+  # flake-parts-side), so compose's default host projection is empty and
   # `flake.nixosConfigurations` is `{}` — harmless. The demo's OWN multi-target
   # terminal stays flake-parts-side: `modules/injection.nix` binds resolved vars
   # into each aspect's class content (genBind.wrap) for BOTH classes, and
@@ -36,10 +36,10 @@
         };
       in
       {
-        # gen-flake injects a `perSystem` (to spread `genValues` into per-system
-        # args), so flake-parts requires `systems`. The demo emits no per-system
-        # outputs; one system suffices.
-        systems = [ "x86_64-linux" ];
+        # gen-flake v1 injects `genValues` into the top-level flake args only;
+        # `perSystem` injection is opt-in (`gen.injectPerSystem`, default off). The
+        # demo reads `genValues` from top-level readers and emits no per-system
+        # outputs, so no `systems` declaration is required.
 
         imports = [
           # PURE compose + value-injection. Composes ./gen-modules once, injects
@@ -77,8 +77,8 @@
     );
 
   inputs = {
-    # gen-flake — the pure composition boundary. Consumed LOCAL (unpublished) via a
-    # path pin. It threads the published pure stack (gen-aspects / gen-merge / …)
+    # gen-flake — the pure composition boundary (v1). Pinned via its published
+    # github rev. It threads the published pure stack (gen-aspects / gen-merge / …)
     # into the tree, so the relocated aspect declaration receives `{ genAspects,
     # genMerge, ... }` as module args.
     gen-flake.url = "github:sini/gen-flake";
