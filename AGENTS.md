@@ -1,5 +1,8 @@
 # gen-vars — agent capability sheet
 
+> **Status (owner ruling, 2026-08-05): EXPERIMENTAL, subject to replacement.** Do not build new
+> long-lived dependencies on this surface without checking the den-hoag tracker first.
+
 ## Scope
 
 Target-agnostic vars/secrets algebra: normalizes generator declarations, topologically orders them into a backend-agnostic plan, and fans one resolution-free file handle out to many consumer targets in one evaluation — emitting a generate script, never running it.
