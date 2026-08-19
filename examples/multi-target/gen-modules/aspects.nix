@@ -19,10 +19,13 @@
 #
 # The declared class set (`classes`) is the SINGLE SOURCE OF TRUTH for the class
 # names, threaded EXPLICITLY from flake.nix — never read back off a `schema`
-# surface (gen-aspects keeps classes at cnf.classes internally and never
-# re-surfaces them). Both classes (`nixos` + `terranix`) are registered so
-# neither falls through freeform into a nested aspect; this is the multi-target
-# headline (one aspect, two parametric class bodies).
+# surface (gen-aspects holds the declaration in cnf.keySemantics internally and
+# never re-surfaces it). A class is a keySemantics entry carrying
+# `category = "class"`; only the NAMES cross the boundary, so lowering the
+# demo's name set into that vocabulary here loses nothing. Both classes
+# (`nixos` + `terranix`) are registered so neither falls through freeform into a
+# nested aspect; this is the multi-target headline (one aspect, two parametric
+# class bodies).
 {
   genAspects,
   lib,
@@ -31,7 +34,7 @@
 }:
 let
   aspectSchema = genAspects.mkAspectSchema {
-    inherit classes;
+    keySemantics = lib.mapAttrs (_: _: { category = "class"; }) classes;
     collections = {
       tags = {
         default = [ ];

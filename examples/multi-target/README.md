@@ -28,8 +28,10 @@ flake.nix              — inputs = { gen-flake = path:… ; gen-vars = path:../
                          imports gen-flake.flakeModules.default; gen.tree = ./gen-modules;
                          gen.specialArgs = { lib; classes }; reader libs + classNames via _module.args
 gen-modules/           — the PURE gen tree (composed by gen-flake's evalModuleTree, injected as genValues)
-  aspects.nix          — the typed aspect SURFACE: mkAspectSchema { classes = { nixos; terranix }; }
-                         + a `generators` aspectModule; options.aspects = aspectSchema.mkAspectOption {}
+  aspects.nix          — the typed aspect SURFACE: mkAspectSchema { keySemantics = { nixos.category =
+                         "class"; terranix.category = "class"; }; } — the demo's `classes` name set
+                         lowered at this boundary; + a `generators` aspectModule;
+                         options.aspects = aspectSchema.mkAspectOption {}
   aspects/
     vpn.nix            — wg-key generator + PARAMETRIC nixos/terranix classes that read `vars`
     tls.nix            — tls-ca generator (the env-baseline aspect)
@@ -53,7 +55,7 @@ ci/
 
 | Library | Role in this demo |
 |---------|-------------------|
-| **gen-aspects** | `mkAspectSchema { classes = { nixos; terranix }; aspectModules = [ generators ]; }` + `flatten` — two registered classes and a per-aspect `generators` channel |
+| **gen-aspects** | `mkAspectSchema { keySemantics = { nixos.category = "class"; terranix.category = "class"; }; aspectModules = [ generators ]; }` + `flatten` — two registered classes and a per-aspect `generators` channel |
 | **gen-scope** | `buildNodes` + `eval` build a real env/host parent graph; `inheritAll` (with a `lib.unique` combine) unions each host's generator names up the env→host chain — **graph topology is the selection mechanism** |
 | **gen-vars** | imported-only: `mkHandle` / `mkGenerator` / `mkPlan` / `resolveAll` / `handleId`. `resolveAll` fans ONE handle to BOTH class resolvers in ONE call |
 | **gen-bind** | `wrap` injects a host-global `vars` binding (resolved class-native values) into each aspect's parametric class content, with a contract + provenance |
