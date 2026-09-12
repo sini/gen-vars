@@ -1,13 +1,13 @@
 {
   inputs = {
-    gen.url = "github:sini/gen";
+    gen-harness.url = "github:sini/gen-harness";
     gen-graph.url = "github:sini/gen-graph";
     nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
   };
 
   outputs =
     inputs@{
-      gen,
+      gen-harness,
       gen-graph,
       nixpkgs,
       ...
@@ -22,7 +22,7 @@
       # genVars on the pure lib.toposort fallback path (no gen-graph).
       genVarsPure = import ../. { inherit lib; };
     in
-    gen.lib.mkCi {
+    gen-harness.lib.mkCi {
       inherit inputs;
       name = "gen-vars";
       testModules = ./tests;
