@@ -1,5 +1,7 @@
 # gen-vars — agent capability sheet
 
+> **Library class: frozen.** Deletion is neither required nor sought; a standing treatment rule prices this repository at zero and excludes it from gen's denominator.
+
 > **Status (owner ruling, 2026-08-05): EXPERIMENTAL, subject to replacement.** Do not build new
 > long-lived dependencies on this surface without checking the den-hoag tracker first.
 
