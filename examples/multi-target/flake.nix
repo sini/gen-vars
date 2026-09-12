@@ -109,6 +109,6 @@
     # The flake-parts reader loader (loads ./modules into the flake-parts eval).
     # Distinct from gen-flake's internal import-tree fork (which loads ./gen-modules
     # into the pure gen eval).
-    import-tree.url = "github:sini/import-tree";
+    import-tree.url = "github:denful/import-tree/a164a12202f58eb67559bd33b5592f20660d9baf";
   };
 }
